@@ -1,0 +1,11 @@
+Package: startmrca
+Type: Package
+Title: Estimating time to the common ancestor for a beneficial allele.
+Version: 1.4
+Date: 2016-05-23
+Author: Joel Smith
+Maintainer: Joel Smith <joelhsmth@gmail.com>
+Description: This package uses carriers and non-carriers of a beneficial mutation to estimate the time to the common ancester. 
+License: What license is it under?
+NeedsCompilation: yes
+Packaged: 2017-05-04 20:37:47 UTC; joelsmith
