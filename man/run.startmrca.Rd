@@ -7,7 +7,7 @@ Estimating Time to The Common Ancestor for a Beneficial Allele
 This Method uses Markov chain Monte Carlo to estimate time to the common ancestor for a beneficial allele.  
 }
 \usage{
-run.startmrca(vcf.file, rec.file, mut.rate, rec.rate,nsel, nanc, chain.length, proposal.sd, nanc.post, sample.ids, refsample.ids, pos, sel.allele)
+run.startmrca(vcf.file, rec.file, mut.rate, rec.rate,nsel, nanc, chain.length, proposal.sd, nanc.post, sample.ids, refsample.ids, pos, sel.allele, bed.file, upper.t.limit)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -52,6 +52,9 @@ specifies which allele is the selected allele. Takes value 0 or 1.
 }
   \item{bed.file}{
 Uses a bed file to exclude sites that have not been sequenced in the VCF file. 
+}
+  \item{upper.t.limit}{
+An upper limit from which to draw a uniformly distributed initial value for t before starting the MCMC.  
 }
 
 }

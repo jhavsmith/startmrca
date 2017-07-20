@@ -1,7 +1,6 @@
-#nocomment
 #This runs the full sequence of functions below. 
-run.startmrca = function(vcf.file, rec.file, mut.rate, rec.rate = NULL, nsel = NULL, nanc = NULL, chain.length = 15000, proposal.sd = 20, nanc.post = 100, sample.ids, refsample.ids = NULL, pos, sel.allele = 1, bed.file = NULL) {
-        params = make.params(vcf.file, rec.file, mut.rate, rec.rate, nsel, nanc, chain.length, proposal.sd, nanc.post, sample.ids, refsample.ids, pos, sel.allele, bed.file)                              
+run.startmrca = function(vcf.file, rec.file, mut.rate, rec.rate = NULL, nsel = NULL, nanc = NULL, chain.length = 15000, proposal.sd = 20, nanc.post = 100, sample.ids, refsample.ids = NULL, pos, sel.allele = 1, bed.file = NULL, upper.t.limit = 2000) {
+        params = make.params(vcf.file, rec.file, mut.rate, rec.rate, nsel, nanc, chain.length, proposal.sd, nanc.post, sample.ids, refsample.ids, pos, sel.allele, bed.file, upper.t.limit)                              
         input.list = get.vcfdata.func(params)
         prep.list = prep.func(input.list,params)
         anc.list = anc.func(prep.list)                   
@@ -13,16 +12,16 @@ run.startmrca = function(vcf.file, rec.file, mut.rate, rec.rate = NULL, nsel = N
 }  
 
 #This puts the parameter values into list to pass through the following functions.                                                  
-make.params = function(vcf.file, rec.file, mut.rate, rec.rate, nsel, nanc, chain.length, proposal.sd, nanc.post, sample.ids, refsample.ids, pos, sel.allele, bed.file) {
+make.params = function(vcf.file, rec.file, mut.rate, rec.rate, nsel, nanc, chain.length, proposal.sd, nanc.post, sample.ids, refsample.ids, pos, sel.allele, bed.file, upper.t.limit) {
     file.name = strsplit(vcf.file, ".vcf.gz")
-    params = list("vcf.file"      = vcf.file,     "rec.file"    = rec.file,
-                  "rec.rate"      = rec.rate,     "mut.rate"    = mut.rate, 
-                  "nsel"          = nsel,         "nanc"        = nanc,        
-                  "chain.length"  = chain.length, "proposal.sd" = proposal.sd, 
-                  "nanc.post"     = nanc.post,    "sample.ids"  = sample.ids,  
-                  "refsample.ids" = refsample.ids,"pos"         = pos,         
-                  "sel.allele"    = sel.allele,   "file.name"   = file.name,
-                  "bed.file"      = bed.file)
+    params = list("vcf.file"      = vcf.file,     "rec.file"      = rec.file,
+                  "rec.rate"      = rec.rate,     "mut.rate"      = mut.rate, 
+                  "nsel"          = nsel,         "nanc"          = nanc,        
+                  "chain.length"  = chain.length, "proposal.sd"   = proposal.sd, 
+                  "nanc.post"     = nanc.post,    "sample.ids"    = sample.ids,  
+                  "refsample.ids" = refsample.ids,"pos"           = pos,         
+                  "sel.allele"    = sel.allele,   "file.name"     = file.name,
+                  "bed.file"      = bed.file,     "upper.t.limit" = upper.t.limit)
     if (chain.length < nanc.post) { stop("nanc.post must be less than chain.length")}
     return(params)   
 }                      
@@ -256,14 +255,14 @@ prep.func = function(input.list,params) {
         bed.list = list("left.gaps"=left.gaps,"right.gaps"=right.gaps)
     }
     # this list gets passed to the next function(s).
-    prep.list = list("left.sample"   = left.sample,  "right.sample" = right.sample,   
-                     "left.cont"     = left.cont,    "right.cont"   = right.cont,   
-                     "left.pos"      = left.pos,     "right.pos"    = right.pos,
-                     "sample"        = sample,       "cont.sample"  = cont.sample,
-                     "all.positions" = all.positions,"positions"    = positions,
-                     "sel.site"      = sel.site,     "mut.rate"     = mut.rate, 
-                     "chr"          = chr,           "chain.length"  = chain.length, 
-                     "bed.list" = bed.list)          
+    prep.list = list("left.sample"   = left.sample,  "right.sample"  = right.sample,   
+                     "left.cont"     = left.cont,    "right.cont"    = right.cont,   
+                     "left.pos"      = left.pos,     "right.pos"     = right.pos,
+                     "sample"        = sample,       "cont.sample"   = cont.sample,
+                     "all.positions" = all.positions,"positions"     = positions,
+                     "sel.site"      = sel.site,     "mut.rate"      = mut.rate, 
+                     "chr"           = chr,          "chain.length"  = chain.length, 
+                     "bed.list"      = bed.list,     "upper.t.limit" = params$upper.t.limit)          
    return(prep.list)
 }   
 
@@ -466,9 +465,10 @@ one.list.func = function(prep.list,anc.list,r.vec) {
                        "all.positions" = prep.list[[9]], "positions"    = prep.list[[10]],
                        "left.r"        = left.r,         "right.r"      = right.r,
                        "t.chain"       = t.chain,        "anchap.post"  = anchap.post,
-                       "sel.site"     = sel.site,        "mu"           = mut.rate,          
-                       "r"            = r,               "bed.list"     = prep.list$bed.list, 
-                       "tmrca"        = prep.list$tmrca, "chain.length" = chain.length)                   
+                       "sel.site"      = sel.site,        "mu"           = mut.rate,          
+                       "r"             = r,               "bed.list"     = prep.list$bed.list, 
+                       "tmrca"         = prep.list$tmrca, "chain.length" = chain.length,
+                       "upper.t.limit" = prep.list$upper.t.limit)                   
     return(mcmc.list)
 } 
         
@@ -637,7 +637,7 @@ mcmc.init.func = function(mcmc.list) {
     print("Initializing the MCMC.")
 	hap.init         = mcmc.list$full.anc        
 	chain.length     = mcmc.list$chain.length                        
-    t.b              = runif(1,100,2000)      
+        t.b              = runif(1,100,mcmc.list$upper.t.limit)      
 	transition.probs = transition.probs.func(mcmc.list,t.b)  
 	emission.probs.b = emission.probs.func(mcmc.list,transition.probs,t.b)[[3]]   
 	t.chain          = matrix(nrow=(chain.length+1),ncol=4)    
