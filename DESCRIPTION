@@ -1,7 +1,7 @@
 Package: startmrca
 Type: Package
 Title: Estimating time to the common ancestor for a beneficial allele.
-Version: 1.5
+Version: 1.6
 Date: 2016-05-23
 Author: Joel Smith
 Maintainer: Joel Smith <joelhsmth@gmail.com>
