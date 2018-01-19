@@ -1,6 +1,6 @@
 # startmrca
 This package implements a hidden Markov model to estimate the time at which a beneficial
-allele begins increasing in frequency. More specifically, we use assume a "star" genealogy 
+allele begins increasing in frequency. More specifically, we assume a "star" genealogy 
 among carriers of the benefical allele to estimate time to the most recent common ancestor
 (TMRCA). See [Smith et al.](https://www.biorxiv.org/content/early/2016/08/24/071241) 
 for details of the model and methods.
