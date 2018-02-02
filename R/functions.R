@@ -238,11 +238,18 @@ prep.func = function(input.list,params) {
     }
     # Now we divide the data up into halves. The model runs from left to right starting
     # from the selected site, so we have to flip the left side around.
-    left.sample  = sample[,sel.site:1]
-    left.cont    = cont.sample[,sel.site:1]
-    left.pos     = abs(positions[sel.site:1]-positions[sel.site])+1
+    if (is.vector(cont.sample)) {
+        print("You need a minimum of 2 haplotypes in the reference panel")
+        stopifnot(!is.vector(cont.sample))
+        break
+    }
+    if (!is.vector(cont.sample)) { 
+        left.cont    = cont.sample[,sel.site:1]
+        right.cont   = cont.sample[,sel.site:ncol(cont.sample)] 
+    }
+    left.sample  = sample[,sel.site:1]  
     right.sample = sample[,sel.site:ncol(sample)]
-    right.cont   = cont.sample[,sel.site:ncol(cont.sample)]
+    left.pos     = abs(positions[sel.site:1]-positions[sel.site])+1  
     right.pos    = (positions[sel.site:ncol(sample)]-positions[sel.site])+1
     # The bedfile can tell us which (if any) positions were not actually sequenced in the vcf.
     # We need to know this because invariant sites may instead just be unobserved (or unsequenced) sites.
