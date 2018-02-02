@@ -6,8 +6,7 @@ among carriers of the benefical allele to estimate time to the most recent commo
 for details of the model and methods.
 
 ## Setup
-In R, install the [latest version of the
-startmrca package](https://github.com/jhavsmith/startmrca/releases) using these commands:
+In R, install the latest version of the package using these commands:
     
    ```R
    library(devtools)
