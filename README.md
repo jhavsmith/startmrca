@@ -11,7 +11,7 @@ startmrca package](https://github.com/jhavsmith/startmrca/releases) using these 
     
    ```R
    library(devtools)
-   install_github("jhavsmith/startmrca@v0.6-1")
+   install_github("jhavsmith/startmrca")
    library(startmrca)
    ```
 
