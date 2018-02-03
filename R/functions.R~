@@ -90,7 +90,7 @@ get.vcfdata.func = function(params) {
         }
     }
     # If there's redundancy between the carrier and reference panels it removes duplicates.
-	pop.fields        = c(c(1:9),c(sel.fields,ref.fields) + 9)
+	pop.fields = c(c(1:9),c(sel.fields,ref.fields) + 9)
 	if (length(which(sel.fields%in%ref.fields==TRUE))==length(sel.fields)) {
         pop.fields = c(c(1:9),c(sel.fields) + 9)
 	}
@@ -644,7 +644,7 @@ mcmc.init.func = function(mcmc.list) {
     print("Initializing the MCMC.")
 	hap.init         = mcmc.list$full.anc
 	chain.length     = mcmc.list$chain.length
-        t.b              = runif(1,100,mcmc.list$upper.t.limit)
+    t.b              = runif(1,100,mcmc.list$upper.t.limit)
 	transition.probs = transition.probs.func(mcmc.list,t.b)
 	emission.probs.b = emission.probs.func(mcmc.list,transition.probs,t.b)[[3]]
 	t.chain          = matrix(nrow=(chain.length+1),ncol=4)
