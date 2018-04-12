@@ -11,7 +11,7 @@ run.startmrca = function(vcf.file, rec.file, mut.rate, rec.rate = NULL, nsel = N
         save(mcmc.output,file = paste(params$file.name,"_mcmc_list.RDATA",sep=''))
 }
 
-#This puts the parameter values into list to pass through the following functions.
+#This puts the parameter values into a list to pass through the following functions.
 make.params = function(vcf.file, rec.file, mut.rate, rec.rate, nsel, nanc, chain.length, proposal.sd, nanc.post, sample.ids, refsample.ids, pos, sel.allele, bed.file, upper.t.limit) {
     file.name = strsplit(vcf.file, ".vcf.gz")
     params = list("vcf.file"      = vcf.file,     "rec.file"      = rec.file,
@@ -246,7 +246,7 @@ prep.func = function(input.list,params) {
     if (!is.vector(cont.sample)) { 
         left.cont    = cont.sample[,sel.site:1]
         right.cont   = cont.sample[,sel.site:ncol(cont.sample)] 
-    }
+    }  
     left.sample  = sample[,sel.site:1]  
     right.sample = sample[,sel.site:ncol(sample)]
     left.pos     = abs(positions[sel.site:1]-positions[sel.site])+1  
@@ -514,7 +514,7 @@ transition.probs.func = function(mcmc.list,t) {
             zr.off[which(zr.off==-Inf)] = min.value
         }
     }
-    zr               = zr.on+c(zr.off,0)
+    zr = zr.on+c(zr.off,0)
     if (length(which(zl==-Inf))!=0) {
         zl[which(zl==-Inf)] = min(zr)
     }
@@ -561,12 +561,22 @@ emission.probs.func = function(mcmc.list,transition.probs,t.m) {
 		mismatches   = 0
 		# If a bed file was specified, this figures out how many sites to call "invariant".
 		if (length(gaps)!=0) {
-		    gaps = gaps[-which(gaps[,1]>pos[length(pos)]),]
+		    if (length(which(gaps[,1]>pos[length(pos)]))!=0) {
+		        gaps = gaps[-which(gaps[,1]>pos[length(pos)]),]		    
+		    }
+            if (length(which(gaps[,1]>pos[length(pos)]))==0) {
+                gaps = gaps
+            }
 	        inv.sites = diff(pos)-1
 	        gap.index = c(1:nrow(gaps))
 	        new.inv.sites = inv.sites
-		    for (i in 1:nrow(gaps)) {
-	            new.inv.sites[min(which(pos>gaps[i,2]))-1] = inv.sites[min(which(pos>gaps[i,2]))-1] - length(c(gaps[i,1]:gaps[i,2]))
+		    for (i in 1:nrow(gaps)) {  
+		        if (length(which(pos>gaps[i,2]))!=0) {
+	                new.inv.sites[min(which(pos>gaps[i,2]))-1] = inv.sites[min(which(pos>gaps[i,2]))-1] - length(c(gaps[i,1]:gaps[i,2]))
+		        }
+		        if (length(which(pos>gaps[i,2]))==0) {
+                    break
+		        }
 		    }
 	        invariant.matches = c(0,cumsum(new.inv.sites))
 	    }
