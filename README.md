@@ -16,7 +16,7 @@ In R, install the latest version of the package using these commands:
 
 ## Usage
 After installing the package, usage options and an example are available 
-by typing
+by typing:
 
    ```R
    help(run.startmrca)

@@ -1,5 +1,6 @@
 #This runs the full sequence of functions below.
 run.startmrca = function(vcf.file, rec.file, mut.rate, rec.rate = NULL, nsel = NULL, nanc = NULL, chain.length = 15000, proposal.sd = 20, nanc.post = 100, sample.ids, refsample.ids = NULL, pos, sel.allele = 1, bed.file = NULL, upper.t.limit = 2000) {
+        recover()
         params = make.params(vcf.file, rec.file, mut.rate, rec.rate, nsel, nanc, chain.length, proposal.sd, nanc.post, sample.ids, refsample.ids, pos, sel.allele, bed.file, upper.t.limit)
         input.list = get.vcfdata.func(params)
         prep.list = prep.func(input.list,params)
@@ -137,7 +138,7 @@ get.vcfdata.func = function(params) {
     fields.list       = list("sel.fields"=sel.fields,"ref.fields"=ref.fields)
     input.list = list("whole.sample" = whole.sample, "positions"  = positions,
                       "allele.freqs" = allele.freqs, "const.mult" = params$const.mult,
-                      "fields.list"  = fields.list,  "chr"        = chrom)
+                      "fields.list"  = fields.list,  "chr"        = chrom)                      
     return(input.list)
 }
 
@@ -367,7 +368,7 @@ anc.func = function(prep.list) {
             order.anc.table     = cbind(order.anc.table,add.anc.table.sites)
             new.anc.table       = order.anc.table[-1,order(order.anc.table[1,])]
         }
-        # identifies the first "non-ancestral" site in each chromosome.
+        # identifies the first "non-ancestral" site in each chromosome.     
         for (j in 1:nrow(new.anc.table)) {
             if (length(which(new.anc.table[j,]==0))==0) {
                next
