@@ -34,7 +34,7 @@ get.vcfdata.func = function(params) {
     file.name = params$file.name
     sel.pos = params$pos
     # pulls the sample labels from the vcf
-    system(paste('zcat < ',vcf.file,' | grep CHROM -m 1 > ', paste(file.name,'_fields.txt',sep='')))
+    system(paste('gunzip -c < ',vcf.file,' | grep CHROM -m 1 > ', paste(file.name,'_fields.txt',sep='')))
 	fields = scan(paste(file.name,'_fields.txt',sep=''),what='character')
 	system(paste("rm", paste(file.name,'_fields.txt',sep='')))
 	sample.fields = fields[-c(1:9)]
@@ -96,7 +96,7 @@ get.vcfdata.func = function(params) {
         pop.fields = c(c(1:9),c(sel.fields) + 9)
 	}
 	# This trims the vcf file down to the sample IDs we want using the columns from pop.fields.
-    system(paste('zcat < ',vcf.file, '| cut -f',paste(pop.fields,collapse=","),'> ',paste(file.name,".txt",sep='')))
+    system(paste('gunzip -c < ',vcf.file, '| cut -f',paste(pop.fields,collapse=","),'> ',paste(file.name,".txt",sep='')))
 	vcf.sample        = read.table(paste(file.name,".txt",sep=''))
 	system(paste("rm", paste(file.name,".txt",sep='')))
 	chrom             = as.numeric(paste(unlist(vcf.sample[1,1])))
