@@ -99,7 +99,7 @@ get.vcfdata.func = function(params) {
     system(paste('gunzip -c < ',vcf.file, '| cut -f',paste(pop.fields,collapse=","),'> ',paste(file.name,".txt",sep='')))
 	vcf.sample        = read.table(paste(file.name,".txt",sep=''))
 	system(paste("rm", paste(file.name,".txt",sep='')))
-	chrom             = as.numeric(paste(unlist(vcf.sample[1,1])))
+	chrom             = paste(unlist(vcf.sample[1,1]))
 	# We want to remove any sites that aren't biallelic.
     alt.allele.number = nchar(paste(unlist(vcf.sample[,5])))
     ref.allele.number = nchar(paste(unlist(vcf.sample[,4])))
@@ -418,7 +418,7 @@ rec.func = function(params,prep.list) {
     if (is.character(recmap.file)) {
         # Defines the new recombination intervals from the VCF positions.
         rec.map         = no.list.func(read.table(recmap.file),"num")
-        recmap.chr      = rec.map[which(rec.map[,1]==chrom),]
+        recmap.chr      = rec.map[which(rec.map[,1]==as.numeric(chrom)),]
         recmap.windows  = cbind((recmap.chr[-nrow(recmap.chr),2]),(recmap.chr[-1,2]))
 	    windows         = cbind(positions[-length(positions)],positions[-1])
         new.recs        = rep(0,nrow(windows))
