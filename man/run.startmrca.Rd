@@ -7,7 +7,11 @@ Estimating Time to The Common Ancestor for a Beneficial Allele
 This Method uses Markov chain Monte Carlo to estimate time to the common ancestor for a beneficial allele.  
 }
 \usage{
-run.startmrca(vcf.file, rec.file, mut.rate, rec.rate,nsel, nanc, chain.length, proposal.sd, nanc.post, sample.ids, refsample.ids, pos, sel.allele, bed.file, upper.t.limit)
+run.startmrca(vcf.file, rec.file, mut.rate, rec.rate = NULL, 
+    nsel = NULL, nanc = NULL, chain.length = 15000, proposal.sd = 20, 
+    nanc.post = 100, sample.ids, refsample.ids = NULL, pos, 
+    sel.allele = 1, bed.file = NULL, upper.t.limit = 2000, 
+    output.file = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -51,10 +55,13 @@ the position of the putatively selected allele.
 specifies which allele is the selected allele. Takes value 0 or 1.
 }
   \item{bed.file}{
-Uses a bed file to exclude sites that have not been sequenced in the VCF file. 
+uses a bed file to exclude sites that have not been sequenced in the VCF file. 
 }
   \item{upper.t.limit}{
-An upper limit from which to draw a uniformly distributed initial value for t before starting the MCMC.  
+an upper limit from which to draw a uniformly distributed initial value for t before starting the MCMC.  
+}
+  \item{output.file}{
+a character vector with a file path. If NULL, a default path will be used (VCF file name with "_mcmc_list.RDATA" extension). If NA, no file will be created.
 }
 
 }
@@ -63,8 +70,11 @@ An upper limit from which to draw a uniformly distributed initial value for t be
 }
 \value{
 
-\item{t.chain }{Description of 't.chain'} a four column matrix of the MCMC output for the TMRCA. The number of rows is equal to the number specified by the chain.length argument. The first column is the proposed TMRCA value, the second column is the emission probability of the current TMRCA and ancestral haplotype values. The third column is the Metropolis-Hastings ratio. The fourth column indicates whether the proposed value was accepted or not.  
-\item{anchap.chain }{Description of 'anchap.chain'} a sample from the posterior distribution of the ancestral haplotype. The number of rows is specified by the nanc.post argument, and indicates the size of the posterior sample from the end of the chain. 
+The function will return a list of two elements:
+\item{t.chain}{a four column matrix of the MCMC output for the TMRCA. The number of rows is equal to the number specified by the chain.length argument. The first column is the proposed TMRCA value, the second column is the emission probability of the current TMRCA and ancestral haplotype values. The third column is the Metropolis-Hastings ratio. The fourth column indicates whether the proposed value was accepted or not.}
+\item{anchap.chain}{a sample from the posterior distribution of the ancestral haplotype. The number of rows is specified by the nanc.post argument, and indicates the size of the posterior sample from the end of the chain.}
+
+The output of the function can be assigned to an object independently of being saved in a file.
 
 }
 \references{
