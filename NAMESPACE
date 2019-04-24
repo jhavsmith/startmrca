@@ -1,2 +1,5 @@
 useDynLib(startmrca, cprobback) 
+import(vcfR)
+importFrom("stats", "rbinom", "rnorm", "runif")
+importFrom("utils", "read.table", "setTxtProgressBar", "txtProgressBar")
 export(run.startmrca)

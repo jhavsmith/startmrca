@@ -1,6 +1,6 @@
 
 #This runs the full sequence of functions below.
-run.startmrca = function(vcf.file, rec.file, mut.rate, rec.rate = NULL, nsel = NULL, nanc = NULL, chain.length = 15000, proposal.sd = 20, nanc.post = 100, sample.ids, refsample.ids = NULL, pos, sel.allele = 1, bed.file = NULL, upper.t.limit = 2000) {
+run.startmrca = function(vcf.file, rec.file, mut.rate, rec.rate = NULL, nsel = NULL, nanc = NULL, chain.length = 15000, proposal.sd = 20, nanc.post = 100, sample.ids, refsample.ids = NULL, pos, sel.allele = 1, bed.file = NULL, upper.t.limit = 2000, output.file = NULL) {
         params = make.params(vcf.file, rec.file, mut.rate, rec.rate, nsel, nanc, chain.length, proposal.sd, nanc.post, sample.ids, refsample.ids, pos, sel.allele, bed.file, upper.t.limit)
         input.list = get.vcfdata.func(params)
         prep.list = prep.func(input.list,params)
@@ -9,7 +9,19 @@ run.startmrca = function(vcf.file, rec.file, mut.rate, rec.rate = NULL, nsel = N
         mcmc.list = one.list.func(prep.list,anc.list,new.recmap)
         mcmc.list = mcmc.init.func(mcmc.list)
         mcmc.output = startchain.func(mcmc.list,params)
-        save(mcmc.output,file = paste(params$file.name,"_mcmc_list.RDATA",sep=''))
+
+        # Save result on disk
+        if (! is.na(output.file)) {
+            # Specify a file, else use default
+            if(is.null(output.file)) {
+                save(mcmc.output, file = paste0(params$file.name,"_mcmc_list.RDATA"))
+            } else {
+                save(mcmc.output, file = output.file)
+            }
+        }
+
+        # Return matrix if assigned to object
+        return(invisible(mcmc.output))
 }
 
 #This puts the parameter values into a list to pass through the following functions.
@@ -33,11 +45,19 @@ get.vcfdata.func = function(params) {
     vcf.file = params$vcf.file
     file.name = params$file.name
     sel.pos = params$pos
-    # pulls the sample labels from the vcf
-    system(paste('gunzip -c < ',vcf.file,' | grep CHROM -m 1 > ', paste(file.name,'_fields.txt',sep='')))
-	fields = scan(paste(file.name,'_fields.txt',sep=''),what='character')
-	system(paste("rm", paste(file.name,'_fields.txt',sep='')))
-	sample.fields = fields[-c(1:9)]
+
+    # Loading VCF
+    vcf.data <- read.vcfR(vcf.file, verbose=FALSE)
+    
+    # Removing IDs because extract.gt does not handle duplicated IDs
+    ## This is addressed by removing duplicated IDs
+    vcf.id <- getID(vcf.data)
+    if (! all(is.na(vcf.id)) & any(duplicated(vcf.id[ ! is.na(vcf.id)])) ) {
+        print("Removing variable sites with duplicated ID in the vcf (only the first sites are kept).")
+        vcf.data <- vcf.data[ ! is.na(vcf.id) & ! duplicated(vcf.id), ]
+    }
+
+    sample.fields <- colnames(extract.gt(vcf.data))
 	ref.fields = "NA"
 	if (!is.character(params$sample.ids)) {
 	    # If no carriers are specified it uses the full sample.
@@ -72,7 +92,6 @@ get.vcfdata.func = function(params) {
 	if (is.character(params$refsample.ids)) {
 	    if (!file.exists(params$refsample.ids)) {
 	       print(paste(params$refsample.ids,"doesn't exist.",sep=' '))
-	       break
 	    } else {
 	       print("Reference panel IDs are specified.")
 	       # This pulls out the reference individuals from the full sample.
@@ -91,18 +110,17 @@ get.vcfdata.func = function(params) {
         }
     }
     # If there's redundancy between the carrier and reference panels it removes duplicates.
-	pop.fields = c(c(1:9),c(sel.fields,ref.fields) + 9)
+	pop.fields = c(sel.fields,ref.fields)
 	if (length(which(sel.fields%in%ref.fields==TRUE))==length(sel.fields)) {
-        pop.fields = c(c(1:9),c(sel.fields) + 9)
+        pop.fields = c(sel.fields)
 	}
 	# This trims the vcf file down to the sample IDs we want using the columns from pop.fields.
-    system(paste('gunzip -c < ',vcf.file, '| cut -f',paste(pop.fields,collapse=","),'> ',paste(file.name,".txt",sep='')))
-	vcf.sample        = read.table(paste(file.name,".txt",sep=''))
-	system(paste("rm", paste(file.name,".txt",sep='')))
-	chrom             = paste(unlist(vcf.sample[1,1]))
+    vcf.sample <- vcf.data
+    vcf.sample@gt <- vcf.data@gt[,c(1,(pop.fields+1))] # +1 needed because of the FORMAT column in the gt slot
+    chrom             = getCHROM(vcf.sample)[1]
 	# We want to remove any sites that aren't biallelic.
-    alt.allele.number = nchar(paste(unlist(vcf.sample[,5])))
-    ref.allele.number = nchar(paste(unlist(vcf.sample[,4])))
+    alt.allele.number = nchar(getALT(vcf.sample))
+    ref.allele.number = nchar(getREF(vcf.sample))
     alt.remove        = which(alt.allele.number!=1)
     ref.remove        = which(ref.allele.number!=1)
     remove.alleles    = sort(unique(c(alt.remove,ref.remove)))
@@ -111,13 +129,14 @@ get.vcfdata.func = function(params) {
     }
     options(scipen=0)
     # This is where we make our matrix of genotypes from the vcf.
-    genotype.matrix   = matrix(nrow=(ncol(vcf.sample)-9)*2,ncol=nrow(vcf.sample))
+    mygt <- extract.gt(vcf.sample)
+    genotype.matrix   = matrix(nrow=(ncol(mygt))*2,ncol=nrow(mygt))
     odds              = seq(1,nrow(genotype.matrix),2)
     pb                = txtProgressBar(1,length(odds),1,style=3)
     for (i in 1:length(odds)) {
         index = odds[i]
-        genotype.matrix[index,]     = as.numeric(substr(vcf.sample[,-c(1:9)][,i],1,1))
-        genotype.matrix[(index+1),] = as.numeric(substr(vcf.sample[,-c(1:9)][,i],3,3))
+        genotype.matrix[index,]     = as.numeric(substr(mygt[,][,i],1,1))
+        genotype.matrix[(index+1),] = as.numeric(substr(mygt[,][,i],3,3))
         setTxtProgressBar(pb, i)
     }
     close(pb)
@@ -134,7 +153,7 @@ get.vcfdata.func = function(params) {
         allele.freqs  = allele.freqs[-invariant.sites]
         whole.sample  = whole.sample[,-invariant.sites]
     }
-    positions         = as.numeric(paste(unlist(vcf.sample[,2])))
+    positions         = as.numeric(getPOS(vcf.sample))
     fields.list       = list("sel.fields"=sel.fields,"ref.fields"=ref.fields)
     input.list = list("whole.sample" = whole.sample, "positions"  = positions,
                       "allele.freqs" = allele.freqs, "const.mult" = params$const.mult,
@@ -242,7 +261,6 @@ prep.func = function(input.list,params) {
     if (is.vector(cont.sample)) {
         print("You need a minimum of 2 haplotypes in the reference panel")
         stopifnot(!is.vector(cont.sample))
-        break
     }
     if (!is.vector(cont.sample)) { 
         left.cont    = cont.sample[,sel.site:1]
@@ -280,7 +298,6 @@ bed.file.func = function(bed.file,psel,left.pos,right.pos) {
     chroms = length(unique(new.bed.file[,1]))
     if (chroms!=1) {
        print("The bed file has too many chromosomes")
-       break
     }
     print("Bed file is specified.")
     segs = new.bed.file[-1,2]-new.bed.file[-nrow(new.bed.file),3]
@@ -524,7 +541,6 @@ transition.probs.func = function(mcmc.list,t) {
     }
     if (length(which(c(zr,zl)==-Inf))!=0) {
         print("The recombination map has no non-zero values - transition probabilities can't be calculated.")
-        break
     }
     transition.probs = list("zl"=zl,"zr"=zr)
     return(transition.probs)

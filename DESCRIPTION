@@ -1,6 +1,6 @@
 Package: startmrca
 Type: Package
-Title: Estimating time to the common ancestor for a beneficial allele.
+Title: Estimating time to the common ancestor for a beneficial allele
 Version: 0.6-1
 Date: 2016-05-23
 Author: Joel Smith
@@ -9,3 +9,5 @@ Description: This package uses carriers and non-carriers of a beneficial mutatio
 License: What license is it under?
 NeedsCompilation: yes
 Packaged: 2018-03-09 19:44:26 UTC; joelsmith
+Depends:
+    vcfR
