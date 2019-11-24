@@ -9,17 +9,12 @@ run.startmrca = function(vcf.file, rec.file, mut.rate, rec.rate = NULL, nsel = N
         mcmc.list = one.list.func(prep.list,anc.list,new.recmap)
         mcmc.list = mcmc.init.func(mcmc.list)
         mcmc.output = startchain.func(mcmc.list,params)
-
         # Save result on disk
-        if (! is.na(output.file)) {
-            # Specify a file, else use default
-            if(is.null(output.file)) {
-                save(mcmc.output, file = paste0(params$file.name,"_mcmc_list.RDATA"))
-            } else {
-                save(mcmc.output, file = output.file)
-            }
+        if (is.null(output.file)) {
+            save(mcmc.output, file = paste0(params$file.name,"_mcmc_list.RDATA"))
+        } else {
+            save(mcmc.output, file = output.file)
         }
-
         # Return matrix if assigned to object
         return(invisible(mcmc.output))
 }
@@ -540,7 +535,7 @@ transition.probs.func = function(mcmc.list,t) {
         zr[which(zr==-Inf)] = min(zl)
     }
     if (length(which(c(zr,zl)==-Inf))!=0) {
-        print("The recombination map has no non-zero values - transition probabilities can't be calculated.")
+        print("The recombination map has zeros - transition probabilities can't be calculated.")
     }
     transition.probs = list("zl"=zl,"zr"=zr)
     return(transition.probs)
