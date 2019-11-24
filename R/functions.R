@@ -1,6 +1,7 @@
 
 #This runs the full sequence of functions below.
 run.startmrca = function(vcf.file, rec.file, mut.rate, rec.rate = NULL, nsel = NULL, nanc = NULL, chain.length = 15000, proposal.sd = 20, nanc.post = 100, sample.ids, refsample.ids = NULL, pos, sel.allele = 1, bed.file = NULL, upper.t.limit = 2000) {
+	    recover()
         params = make.params(vcf.file, rec.file, mut.rate, rec.rate, nsel, nanc, chain.length, proposal.sd, nanc.post, sample.ids, refsample.ids, pos, sel.allele, bed.file, upper.t.limit)
         input.list = get.vcfdata.func(params)
         prep.list = prep.func(input.list,params)
@@ -29,6 +30,7 @@ make.params = function(vcf.file, rec.file, mut.rate, rec.rate, nsel, nanc, chain
 
 #This puts the genotype data from the the vcf into an R matrix format.
 get.vcfdata.func = function(params) {
+	recover()
     print("Getting data from the vcf.")
     vcf.file = params$vcf.file
     file.name = params$file.name
