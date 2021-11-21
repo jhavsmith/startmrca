@@ -124,7 +124,9 @@ get.vcfdata.func = function(params) {
     }
     options(scipen=0)
     # This is where we make our matrix of genotypes from the vcf.
-    mygt <- extract.gt(vcf.sample)
+    mygt <- extract.gt(vcf.data)
+    
+    
     genotype.matrix   = matrix(nrow=(ncol(mygt))*2,ncol=nrow(mygt))
     odds              = seq(1,nrow(genotype.matrix),2)
     pb                = txtProgressBar(1,length(odds),1,style=3)
